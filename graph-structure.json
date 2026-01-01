@@ -1,0 +1,529 @@
+[
+  {
+    "label": "Company",
+    "details": {
+      "count": 11336,
+      "relationships": {
+        "AT_COMPANY": {
+          "count": 1157,
+          "properties": {},
+          "direction": "in",
+          "labels": [
+            "Experience"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "name": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "id": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "HAS_EXPERIENCE",
+    "details": {
+      "count": 17369,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "Publication",
+    "details": {
+      "count": 218,
+      "relationships": {
+        "PUBLISHED": {
+          "count": 64,
+          "properties": {},
+          "direction": "in",
+          "labels": [
+            "Professional"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "date": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "description": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "title": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "JobTitle",
+    "details": {
+      "count": 8538,
+      "relationships": {
+        "ROLE_WAS": {
+          "count": 1157,
+          "properties": {},
+          "direction": "in",
+          "labels": [
+            "Experience"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "name": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "id": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "AT_COMPANY",
+    "details": {
+      "count": 17369,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "FOLLOWED_BY",
+    "details": {
+      "count": 11028,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "Certification",
+    "details": {
+      "count": 2824,
+      "relationships": {
+        "EARNED": {
+          "count": 915,
+          "properties": {
+            "issued_date": {
+              "existence": false,
+              "type": "STRING",
+              "array": false,
+              "indexed": false
+            }
+          },
+          "direction": "in",
+          "labels": [
+            "Professional"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "name": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "id": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "issuer": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "EARNED",
+    "details": {
+      "count": 3737,
+      "type": "relationship",
+      "properties": {
+        "issued_date": {
+          "existence": false,
+          "type": "STRING",
+          "array": false,
+          "indexed": false
+        }
+      }
+    }
+  },
+  {
+    "label": "HAPPENED_DURING",
+    "details": {
+      "count": 5460,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "Experience",
+    "details": {
+      "count": 17369,
+      "relationships": {
+        "HAPPENED_DURING": {
+          "count": 146,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "Experience"
+          ]
+        },
+        "HAS_EXPERIENCE": {
+          "count": 4342,
+          "properties": {},
+          "direction": "in",
+          "labels": [
+            "Professional"
+          ]
+        },
+        "AT_COMPANY": {
+          "count": 0,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "Company"
+          ]
+        },
+        "ROLE_WAS": {
+          "count": 0,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "JobTitle"
+          ]
+        },
+        "FOLLOWED_BY": {
+          "count": 390,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "Experience"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "end_date": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "duration_days": {
+          "existence": false,
+          "type": "INTEGER",
+          "indexed": false,
+          "unique": false
+        },
+        "description": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "start_date": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "PUBLISHED",
+    "details": {
+      "count": 218,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "TOOK_COURSE",
+    "details": {
+      "count": 596,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "Professional",
+    "details": {
+      "count": 5001,
+      "relationships": {
+        "HAS_EXPERIENCE": {
+          "count": 0,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "Experience"
+          ]
+        },
+        "TOOK_COURSE": {
+          "count": 0,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "Course"
+          ]
+        },
+        "PUBLISHED": {
+          "count": 0,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "Publication"
+          ]
+        },
+        "HAS_EDUCATION": {
+          "count": 0,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "Education"
+          ]
+        },
+        "EARNED": {
+          "count": 0,
+          "properties": {
+            "issued_date": {
+              "existence": false,
+              "type": "STRING",
+              "array": false,
+              "indexed": false
+            }
+          },
+          "direction": "out",
+          "labels": [
+            "Certification"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "name": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "about": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "linkedin_id": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "url": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "University",
+    "details": {
+      "count": 3049,
+      "relationships": {
+        "AT_UNIVERSITY": {
+          "count": 1230,
+          "properties": {},
+          "direction": "in",
+          "labels": [
+            "Education"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "name": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "id": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "Education",
+    "details": {
+      "count": 7380,
+      "relationships": {
+        "HAS_EDUCATION": {
+          "count": 1859,
+          "properties": {},
+          "direction": "in",
+          "labels": [
+            "Professional"
+          ]
+        },
+        "AT_UNIVERSITY": {
+          "count": 0,
+          "properties": {},
+          "direction": "out",
+          "labels": [
+            "University"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "degree": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "description": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "field": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "end_year": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "ROLE_WAS",
+    "details": {
+      "count": 17369,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "AT_UNIVERSITY",
+    "details": {
+      "count": 7380,
+      "type": "relationship",
+      "properties": {}
+    }
+  },
+  {
+    "label": "Course",
+    "details": {
+      "count": 548,
+      "relationships": {
+        "TOOK_COURSE": {
+          "count": 136,
+          "properties": {},
+          "direction": "in",
+          "labels": [
+            "Professional"
+          ]
+        }
+      },
+      "type": "node",
+      "properties": {
+        "name": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        },
+        "id": {
+          "existence": false,
+          "type": "STRING",
+          "indexed": false,
+          "unique": false
+        }
+      },
+      "labels": [
+
+      ]
+    }
+  },
+  {
+    "label": "HAS_EDUCATION",
+    "details": {
+      "count": 7380,
+      "type": "relationship",
+      "properties": {}
+    }
+  }
+]
