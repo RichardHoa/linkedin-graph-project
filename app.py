@@ -68,11 +68,10 @@ def handle_query():
     data = request.json
     user_question = data.get('question', '')
     history_data = data.get('history', []) 
+    query_budget = data.get('currentHop',0)
     
     print(f"\n🚀 [NEW QUERY]: {user_question}")
 
-    # FIXED: Role 'system' removed from messages. 
-    # It is now passed as system_instruction in the generate_content calls.
     messages = []
     
     for entry in history_data:
@@ -83,20 +82,20 @@ def handle_query():
     if len(history_data) == 0:
         print("❓ [CLARIFYING]: First contact - requesting clarification.")
         response = gemini_client.models.generate_content(
-            model="gemini-2.5-flash", 
+            model="gemma-3-12b", 
             contents=messages,
             config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT)
         )
-        return jsonify({"question": response.text})
+        return jsonify({"question": response.text,
+        "currentHop":0})
 
-    # Phase 2: Retrieval Loop
-    query_budget = 0
     while query_budget < 3:
         hop_id = query_budget + 1
+        print(f"hop id: {hop_id}")
         hop_context = f"This is HOP {hop_id}/3. Generate a Cypher query or type 'ANALYZE' if you have enough data."
         
         response = gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-12b",
             contents=messages + [types.Content(role="user", parts=[types.Part(text=hop_context)])],
             config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT)
         )
@@ -110,6 +109,7 @@ def handle_query():
         print(f"🔍 [HOP {hop_id}]: Executing Cypher...")
         
         db_results, error, db_time = execute_cypher(cypher_query)
+        print(f"query: {cypher_query}, result: {db_results}")
 
         if error:
             feedback = f"SYSTEM ERROR: Your Cypher failed: {error}. Fix syntax and try again."
@@ -132,7 +132,7 @@ def handle_query():
 
     print(f"🧠 [SYNTHESIZING]: Final response generation...")
     final_response = gemini_client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemma-3-12b",
         contents=messages + [types.Content(role="user", parts=[types.Part(text="Synthesize the final answer based on all gathered data")])],
         config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT)
     )
