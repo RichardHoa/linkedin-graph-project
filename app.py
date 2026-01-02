@@ -97,7 +97,7 @@ def handle_query():
         messages.append({"role": role, "content": entry['text']})
     messages.append({"role": "user", "content": user_question})
 
-    
+
 
     if not further_question and len(history_data) == 0:
         response = groq_client.chat.completions.create(
@@ -109,10 +109,20 @@ def handle_query():
     query_budget = 0
     while query_budget < 3:
         hop_id = query_budget + 1
-        hop_context = (
-            f"This is a follow-up. Decide if you need NEW data from Neo4j to be accurate. "
-            "If yes, generate a ```cypher query. If you can answer based on previous context, type 'ANALYZE'."
-        )
+
+        if further_question:
+            hop_context = (
+                f"This is a follow-up (HOP {hop_id}/3). "
+                "IMPORTANT: If the data needed to answer is already in the conversation history, "
+                "DO NOT generate a new Cypher query. Just type 'ANALYZE'. "
+                "Only query Neo4j if you need new, specific data."
+            )
+        else:
+            hop_context = (
+                f"This is HOP {hop_id}/3. If you do not have specific data yet, "
+                "you MUST generate a ```cypher query. If you have enough data, type 'ANALYZE'."
+            )
+
         
         response = groq_client.chat.completions.create(
             model=MODEL_NAME,
@@ -134,7 +144,6 @@ def handle_query():
 
             query_budget += 1
             if db_results:
-                # --- APPLY SUMMARIZATION TO MINIMIZE CONTEXT ---
                 summary = summarize_results(db_results, user_question)
                 feedback = f"HOP {hop_id} INSIGHTS (n={len(db_results)}): {summary}"
             else:
