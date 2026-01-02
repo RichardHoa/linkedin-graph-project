@@ -1,7 +1,7 @@
 import time
 import json
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from neo4j import GraphDatabase
 from groq import Groq
 
@@ -43,6 +43,18 @@ def execute_cypher(query):
     except Exception as e:
         return None, str(e), (time.time() - start_time)
 
+def summarize_results(results, user_question):
+    summary_prompt = (
+        f"Summarize these {len(results)} raw database records into concise, factual insights "
+        f"specifically answering: '{user_question}'. Do not lose specific counts or unique entities."
+    )
+    response = groq_client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[{"role": "system", "content": summary_prompt}, {"role": "user", "content": str(results)}],
+        temperature=0
+    )
+    return response.choices[0].message.content
+
 GRAPH_CONTEXT = format_schema_for_llm(schema_data)
 
 # GENERALIZED SYSTEM PROMPT
@@ -66,28 +78,28 @@ CYPHER GUIDELINES:
 - Always verify relationship directions in the schema before writing Cypher.
 """
 
+@app.route('/')
+def index():
+    return send_from_directory('static', 'index.html')
+
+
 @app.route('/ask', methods=['POST'])
 def handle_query():
     overall_start = time.time()
     data = request.json
     user_question = data.get('question', '')
     history_data = data.get('history', []) 
-    further_question = data.get('furtherQuestion',False)
+    further_question = data.get('furtherQuestion', False)
     
-    print(f"\n🚀 [NEW QUERY]: {user_question}")
-
-    # Standardize messages and FIX THE "model" ROLE ERROR
     messages = []
     for entry in history_data:
-        # Map "model" to "assistant" for Groq compatibility
         role = "assistant" if entry['role'] == "model" else entry['role']
         messages.append({"role": role, "content": entry['text']})
-    
     messages.append({"role": "user", "content": user_question})
 
-    # 1. MANDATORY CLARIFICATION (Call 1)
-    if len(history_data) == 0:
-        print("❓ [CLARIFYING]: First contact - requesting clarification.")
+    
+
+    if not further_question and len(history_data) == 0:
         response = groq_client.chat.completions.create(
             model=MODEL_NAME,
             messages=[{"role": "system", "content": SYSTEM_PROMPT}] + messages
@@ -95,15 +107,11 @@ def handle_query():
         return jsonify({"question": response.choices[0].message.content, "currentHop": 0})
 
     query_budget = 0
-    # 2. DATA GATHERING HOPS (Calls 2-4)
     while query_budget < 3:
         hop_id = query_budget + 1
-        
-        # FORCING THE LLM TO QUERY DATA
         hop_context = (
-            f"This is HOP {hop_id}/3. If you do not have specific data from the database to answer the user's "
-            "question yet, you MUST generate a ```cypher query. DO NOT provide a final analysis "
-            "until you have gathered evidence. If you have enough data, type 'ANALYZE'."
+            f"This is a follow-up. Decide if you need NEW data from Neo4j to be accurate. "
+            "If yes, generate a ```cypher query. If you can answer based on previous context, type 'ANALYZE'."
         )
         
         response = groq_client.chat.completions.create(
@@ -113,47 +121,38 @@ def handle_query():
         )
         
         decision = response.choices[0].message.content
-        
         if "```cypher" not in decision:
-            if hop_id == 1:
-                # If it tries to analyze on the very first hop without data, force a retry
-                print("⚠️ [STALL]: LLM tried to analyze without data on Hop 1. Forcing Cypher.")
-            else:
-                print(f"✅ [HOP {hop_id}]: LLM decided to ANALYZE.")
-                break
+            break
 
-        # Extraction logic
         try:
             cypher_query = decision.split("```cypher")[1].split("```")[0].strip()
-            print(f"🔍 [HOP {hop_id}]: Executing Cypher...")
-            
-            db_results, error, db_time = execute_cypher(cypher_query)
+            db_results, error, _ = execute_cypher(cypher_query)
 
             if error:
-                feedback = f"SYSTEM ERROR: Your Cypher failed: {error}. Fix syntax and try again."
-                messages.append({"role": "assistant", "content": decision})
-                messages.append({"role": "user", "content": feedback})
-                print(f"❌ [DB ERROR]: {error}")
+                messages.append({"role": "user", "content": f"Cypher error: {error}"})
                 continue
 
             query_budget += 1
-            messages.append({"role": "assistant", "content": decision})
-            
-            if not db_results:
-                feedback = f"HOP {hop_id} RESULT: 0 records found. The search term may be too specific. Broaden your scope for HOP {hop_id+1}."
-                print(f"⚠️ [EMPTY RESULT]: Feedback sent to LLM.")
+            if db_results:
+                # --- APPLY SUMMARIZATION TO MINIMIZE CONTEXT ---
+                summary = summarize_results(db_results, user_question)
+                feedback = f"HOP {hop_id} INSIGHTS (n={len(db_results)}): {summary}"
             else:
-                feedback = f"HOP {hop_id} RESULT: Found {len(db_results)} records. Data: {db_results}"
-                print(f"📊 [SUCCESS]: {len(db_results)} records found.")
+                feedback = f"HOP {hop_id} RESULT: 0 records found."
                 
+            messages.append({"role": "assistant", "content": decision})
             messages.append({"role": "user", "content": feedback})
-        except IndexError:
-            print("⚠️ [PARSE ERROR]: No Cypher found in response despite budget. Moving to synthesis.")
+        except Exception:
             break
 
-    # 3. FINAL SYNTHESIS (Final Call)
-    print(f"🧠 [SYNTHESIZING]: Final response generation...")
-    all_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages + [{"role": "user", "content": "Synthesize the final answer based ONLY on the data found in the HOP results above."}]
+    messages = [
+        m for m in messages 
+        if not (m['role'] == 'assistant' and '```cypher' in m['content']) 
+        and not (m['role'] == 'user' and m['content'].startswith("Cypher error:"))
+    ]
+
+    # 3. FINAL SYNTHESIS
+    all_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages + [{"role": "user", "content": "Synthesize final answer."}]
     print(all_messages)
     final_response = groq_client.chat.completions.create(
         model=MODEL_NAME,
@@ -161,8 +160,10 @@ def handle_query():
         temperature=0.5
     )
     
-    print(f"🏁 [COMPLETE]: Finished in {time.time() - overall_start:.2f}s\n" + "-"*30)
-    return jsonify({"analysis": final_response.choices[0].message.content})
+    return jsonify({
+        "analysis": final_response.choices[0].message.content,
+        "isFinal": True
+    })
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
