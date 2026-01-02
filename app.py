@@ -15,7 +15,7 @@ neo4j_driver = GraphDatabase.driver(
 
 # Initialize Groq Client
 groq_client = Groq(api_key="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") 
-MODEL_NAME = "llama-3.3-70b-versatile"
+MODEL_NAME = "groq/compound"
 
 with open('graph-structure.json', 'r') as f:
     schema_data = json.load(f)
